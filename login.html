@@ -4,8 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
-<body>
-    
+<body class="bg-fixed bg-center bg-cover bg-[url(/img/background-salad.jpg)]">
+    <header class="border-b-1 p-2 mb-20 bg-white">
+        <nav class="flex">
+            <a href="/" class="flex-none font-medium">Food App</a>
+            <div class="flex-1"></div>
+            <!--input type="search" class="flex-1"
+                placeholder="Search for a cuisine or restaurant..." /-->
+        </nav>
+    </header>
+    <form action="dashboard.html" onsubmit="return checkInfo()"
+        class="flex items-center justify-center">
+        <div class="grid border-1 p-10 w-100 rounded-l bg-white">
+            <div class="mb-2 grid grid-cols-1">
+                <label for="email">Login</label>
+                <input id="email" type="email" 
+                    class="self-justify-end border-1 px-2 py-1 rounded"/>
+            </div>
+            <div class="mb-6 grid grid-cols-1">
+                <label for="password">Password</label>
+                <input id="password" type="password" minlength="5"
+                    class="border-1 px-2 py-1 rounded"/>
+            </div>
+            <input type="submit" value="Login"
+                class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full"/>
+        </div>
+    </form>
+    <script src="js/login.js"></script>
 </body>
 </html>
