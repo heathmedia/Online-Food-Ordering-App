@@ -36,7 +36,7 @@ function addMealToDisplay(item) {
     let img = document.createElement('img')
     img.src = item.strMealThumb
     img.alt = item.strMeal
-    img.className = "w-64 rounded-lg mb-2"
+    img.className = "sm:w-64 rounded-lg mb-2"
     
     let info = document.createElement('div')
     info.className = 'grid w-40'
