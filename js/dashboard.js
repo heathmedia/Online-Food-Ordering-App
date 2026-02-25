@@ -30,7 +30,7 @@ function logout() {
 function addMealToDisplay(item) {
 
     let meal = document.createElement('div')
-    meal.className = 'meal m-10'
+    meal.className = 'meal'
     meal.id = item.idMeal
 
     let img = document.createElement('img')
@@ -193,12 +193,74 @@ function closeCart() {
     overlay.classList.remove('opacity-100')
 }
 
+function updateMealDisplay(meals) {
+    document.getElementById('mealList').innerHTML = ''
+    if(meals !== null) {
+        document.getElementById('mealsNotFound').classList.add('hidden')
+        meals.map(meal=>addMealToDisplay(meal))
+    } else {
+        document.getElementById('mealsNotFound').classList.remove('hidden')
+    }
+}
+
 function getMeals() {
     fetch(mealUrl)
             .then(res=>res.json())
             .then(data=>{
                 console.log('MEALS API', data)
-                data.meals.map(meal=>addMealToDisplay(meal))
+                updateMealDisplay(data.meals)
+            })
+            .catch(error => {
+                console.error('Fetch error:', error)
+            })
+}
+
+function setupCategories() {
+
+        categories.map(category => {
+            const option = document.createElement('button')
+            option.textContent = category
+            option.id = category
+            option.className = `mr-2 cursor-pointer bg-white hover:bg-green-700 hover:text-white 
+                text-green-700 border-1 font-bold py-2 px-4 rounded-full`
+            option.onclick = () => switchCategory(category)
+            
+             if (category === 'All') {
+                option.classList.remove('bg-white', 'text-green-600')
+                option.classList.add('bg-green-700', 'text-white')
+            }
+
+            document.getElementById('categories').append(option)
+        })
+    
+}
+
+function toggleCategoryDisplay(option) {
+    categories.map(category => {
+        const button = document.getElementById(category)
+        if (category === option) {
+            button.classList.remove('bg-white', 'text-green-600')
+            button.classList.add('bg-green-700', 'text-white')
+        } else {
+            button.classList.remove('bg-green-700', 'text-white')
+            button.classList.add('bg-white', 'text-green-700')
+        }
+    })
+}
+
+function switchCategory(option) {
+    let url = ''
+    if (option === 'All') {
+        url = mealUrl
+    } else {
+        url = mealFilterUrl+option
+    }
+    fetch(url)
+            .then(res=>res.json())
+            .then(data=>{
+                console.log(data)
+                updateMealDisplay(data.meals)
+                toggleCategoryDisplay(option)
             })
             .catch(error => {
                 console.error('Fetch error:', error)
@@ -207,7 +269,10 @@ function getMeals() {
 
 // INITIALIZE CONSTANTS
 const mealUrl = 'https://www.themealdb.com/api/json/v1/1/search.php?s='
+const mealFilterUrl = 'https://www.themealdb.com/api/json/v1/1/filter.php?c='
 const email = localStorage.getItem('email')
+const categories = ['All', 'Chicken','Seafood','Beef','Pork','Vegan','Vegetarian','Goat','Lamb', 
+        'Pasta','Dessert','Breakfast']
 
 // INITIALIZE EVENT LISTENERS TO SHOW AND HIDE CART
 document.getElementById('cartBtn').addEventListener('click', openCart)
@@ -231,4 +296,5 @@ if(localStorage.getItem('cart')) {
 }
 
 // GET AVAILABLE MEALS FROM API
-getMeals();
+getMeals()
+setupCategories()
