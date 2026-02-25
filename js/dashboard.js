@@ -45,15 +45,17 @@ function addMealToDisplay(item) {
     title.textContent = item.strMeal
     title.className = 'text-lg font-medium'
 
+    // MODIFY THE MEAL ID TO CREATE A PRICE FOR THE MEAL
+    let priceValue = Number(item.idMeal) - 50000
     let price = document.createElement('div')
-    price.textContent = '$19.99'
+    price.textContent = `$${(priceValue/100).toFixed(2)}` // DISPLAY PRICE WITH TWO DIGITS
 
     info.append(title, price)
     
     let addBtn = document.createElement('button')
     addBtn.innerHTML = '<span><i class="fa-solid fa-plus"></i> Add</span>'
     addBtn.className = 'cursor-pointer shrink-0 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full'
-    addBtn.onclick = () => addToCart({id: item.idMeal, name: item.strMeal, image: item.strMealThumb})
+    addBtn.onclick = () => addToCart({id: item.idMeal, name: item.strMeal, price: priceValue, image: item.strMealThumb})
 
     let controls = document.createElement('div')
     controls.className = 'flex items-center justify-between'
@@ -64,7 +66,6 @@ function addMealToDisplay(item) {
 }
 
 function addToCart(item) {
-    console.log('add',item)
     const cart = getCart()
 
     // Check if the item already exists in the cart
@@ -95,13 +96,45 @@ function removeFromCart(item) {
     populateCartDisplay(cart)
 }
 
+// SET ENABLED/DISABLED STATE FOR A BUTTON
+function setButtonState(btn, enabled) {
+    btn.disabled = !enabled
+    btn.classList.toggle('opacity-50', !enabled)
+    btn.classList.toggle('cursor-not-allowed', !enabled)
+    btn.classList.toggle('cursor-pointer', enabled)
+}
+
 function populateCartDisplay(cart) {
-    const totalItems = cart.reduce((total, i) => total + i.quantity, 0)
+    
     const cartList = document.getElementById('cartList')
-    const itemsInCartInHeader = document.getElementById('itemsInCartInHeader')
-    const itemsInCartInCart = document.getElementById('itemsInCartInCart')
-    itemCountInCart.textContent = `(${totalItems})`
-    itemCountInHeader.textContent = `(${totalItems})`
+
+    // UPDATE TOTALS FOR CART QUANTITY AND CART COST
+    const totals = cart.reduce((acc, i) => {
+            acc.quantity += i.quantity
+            acc.cost += i.quantity * i.price
+            return acc
+        }, {quantity: 0, cost: 0}
+    )
+
+    // SHOW TOTAL NUMBER OF ITEMS IN THE HEADER AND CART PANEL
+    document.getElementById('itemCountInHeader').textContent = `(${totals.quantity})`
+    document.getElementById('itemCountInCart').textContent = `(${totals.quantity})`
+    
+    // CONVERT THE CART TOTAL FROM INTEGER TO TWO-DIGIT DECIMAL FOR DISPLAY
+    document.getElementById('cartTotal').textContent = `$${(totals.cost/100).toFixed(2)}`
+    
+    // IF CART IS EMPTY, DISPLAY EMPTY CART MESSAGE AND DISABLE CHECKOUT BUTTOn
+    // ELSE DISPLAY CART ITEMS AND ENABLE CHECKOUT BUTTON
+    if (totals.quantity === 0) {
+        document.getElementById('cartEmpty').classList.remove('hidden')
+        setButtonState(document.getElementById('checkoutBtn'), false)
+
+    } else {
+        document.getElementById('cartEmpty').classList.add('hidden')
+        setButtonState(document.getElementById('checkoutBtn'), true)
+    }
+
+    // POPULATE CART LIST WITH ITEMS IN CART
     cartList.innerHTML = ''
     cart.forEach(item => {
         const itemDisplay = document.createElement('div')
@@ -144,9 +177,7 @@ function saveCart(cart) {
 }
 
 function getCart() {
-    // Return the cart or return an empty object
     const cart = JSON.parse(localStorage.getItem('cart')) || []
-    console.log(cart)
     return cart
 }
 
@@ -166,7 +197,7 @@ function getMeals() {
     fetch(mealUrl)
             .then(res=>res.json())
             .then(data=>{
-                console.log(data)
+                console.log('MEALS API', data)
                 data.meals.map(meal=>addMealToDisplay(meal))
             })
             .catch(error => {
