@@ -39,11 +39,11 @@ function addMealToDisplay(item) {
     img.className = "w-64 rounded-lg mb-2"
     
     let info = document.createElement('div')
-    info.className = 'grid grid-cols-1'
+    info.className = 'grid w-40'
     
     let title = document.createElement('div')
     title.textContent = item.strMeal
-    title.className = 'text-lg font-medium'
+    title.className = 'text-lg font-medium truncate w-full'
 
     // MODIFY THE MEAL ID TO CREATE A PRICE FOR THE MEAL
     let priceValue = Number(item.idMeal) - 50000
@@ -117,7 +117,7 @@ function populateCartDisplay(cart) {
     )
 
     // SHOW TOTAL NUMBER OF ITEMS IN THE HEADER AND CART PANEL
-    document.getElementById('itemCountInHeader').textContent = `(${totals.quantity})`
+    document.getElementById('itemCountInHeader').textContent = `${totals.quantity}`
     document.getElementById('itemCountInCart').textContent = `(${totals.quantity})`
     
     // CONVERT THE CART TOTAL FROM INTEGER TO TWO-DIGIT DECIMAL FOR DISPLAY
@@ -191,6 +191,21 @@ function closeCart() {
     cartPanel.classList.add('translate-x-full')
     overlay.classList.add('opacity-0', 'pointer-events-none')
     overlay.classList.remove('opacity-100')
+    
+    document.getElementById('orderComplete').classList.add('hidden')
+    document.getElementById('continueShoppingBtn').classList.add('hidden')
+    document.getElementById('checkoutBtn').classList.remove('hidden')
+
+    if(getCart().length === 0) document.getElementById('cartEmpty').classList.remove('hidden')
+}
+
+function checkout() {
+    saveCart([])
+    populateCartDisplay([])
+    document.getElementById('checkoutBtn').classList.add('hidden')
+    document.getElementById('cartEmpty').classList.add('hidden')
+    document.getElementById('orderComplete').classList.remove('hidden')
+    document.getElementById('continueShoppingBtn').classList.remove('hidden')
 }
 
 function updateMealDisplay(meals) {
@@ -219,37 +234,22 @@ function setupCategories() {
 
         categories.map(category => {
             const option = document.createElement('button')
-            option.textContent = category
-            option.id = category
-            option.className = `mr-2 cursor-pointer bg-white hover:bg-green-700 hover:text-white 
-                text-green-700 border-1 font-bold py-2 px-4 rounded-full`
-            option.onclick = () => switchCategory(category)
-            
-             if (category === 'All') {
-                option.classList.remove('bg-white', 'text-green-600')
-                option.classList.add('bg-green-700', 'text-white')
-            }
-
+            option.innerHTML = category.icon+' '+category.id
+            option.id = category.id
+            option.className = `m-1 cursor-pointer hover:ring-2
+                text-green-700 border-1 border-green-700 font-bold py-2 px-4 rounded-full`
+            option.onclick = () => switchCategory(category.id)
             document.getElementById('categories').append(option)
-        })
-    
-}
-
-function toggleCategoryDisplay(option) {
-    categories.map(category => {
-        const button = document.getElementById(category)
-        if (category === option) {
-            button.classList.remove('bg-white', 'text-green-600')
-            button.classList.add('bg-green-700', 'text-white')
-        } else {
-            button.classList.remove('bg-green-700', 'text-white')
-            button.classList.add('bg-white', 'text-green-700')
-        }
-    })
+            
+            if(category.id === 'All') {
+                option.classList.add('ring-2')
+            }
+        })    
 }
 
 function switchCategory(option) {
     let url = ''
+    console.log('switch', option)
     if (option === 'All') {
         url = mealUrl
     } else {
@@ -267,12 +267,37 @@ function switchCategory(option) {
             })
 }
 
+function toggleCategoryDisplay(option) {
+    console.log('toggle', option)
+    categories.map(category => {
+        const button = document.getElementById(category.id)
+        if (category.id === option) {
+            button.classList.add('ring-2')
+        } else {
+            button.classList.remove('ring-2')
+        }
+    })
+}
+
 // INITIALIZE CONSTANTS
 const mealUrl = 'https://www.themealdb.com/api/json/v1/1/search.php?s='
 const mealFilterUrl = 'https://www.themealdb.com/api/json/v1/1/filter.php?c='
 const email = localStorage.getItem('email')
-const categories = ['All', 'Chicken','Seafood','Beef','Pork','Vegan','Vegetarian','Goat','Lamb', 
-        'Pasta','Dessert','Breakfast']
+
+const categories = [
+    {id:'All', icon:''},
+    {id:'Chicken', icon:'🍗'},
+    {id:'Seafood', icon:'🦐'},
+    {id:'Beef', icon:'🥩'},
+    {id:'Pork', icon:'🥓'},
+    {id:'Vegan', icon:'🥗'},
+    {id:'Vegetarian', icon:'🥦'},
+    {id:'Goat', icon:'🐐'},
+    {id:'Lamb', icon:'🐑'},
+    {id:'Pasta', icon:'🍝'},
+    {id:'Dessert', icon:'🍰'},
+    {id:'Breakfast', icon:'🍳'}
+]
 
 // INITIALIZE EVENT LISTENERS TO SHOW AND HIDE CART
 document.getElementById('cartBtn').addEventListener('click', openCart)

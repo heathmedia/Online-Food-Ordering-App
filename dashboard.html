@@ -1,22 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="styleshee"t" href="css/style.css"/>
 </head>
 <body>
-    <header class="flex items-center fixed top-0 right-0 left-0 
+    <header class="flex fixed top-0 right-0 left-0 
         border-b-1 h-16 h-center drop-shadow-sm px-4 py-2 bg-white">
-        <nav class="flex items-center justify-between w-full">
+        <nav class="flex h-center items-center justify-between w-full">
             <a href="/" class="flex-none font-medium text-xl"><i class="fa-solid fa-burger"></i> Munchiez</a>
-            <ul class="flex flex-wrap">
+            <ul class="flex flex-wrap h-center items-center">
                 <li class="ml-4 hover:underline"><a href="">Shop</a></li>
                 <li class="ml-4 hover:underline"><a href="" onclick="return logout()">Logout</a></li>
-                <li class="ml-4"><button id="cartBtn" class="cursor-pointer hover:underline">Cart <span id="itemCountInHeader">(0)</span><i class="fa-solid fa-basket-shopping text-green-600 text-lg"></i></button></li>
+                <li>
+                    <button id="cartBtn" class="flex h-center items-center ml-4 cursor-pointer hover:ring-2 bg-green-700
+                        text-white border-1 border-green-700 font-bold py-2 px-4 rounded-full"><i class="fa-solid fa-basket-shopping text-white text-lg -mt-1 mr-1"></i> <span id="itemCountInHeader" class="">0</span></button>
+                </li>
             </ul>
+            
         </nav>
     </header>
     <div id="overlay"
@@ -24,9 +29,9 @@
     </div>
     <div class="mt-25 mx-10">
         <h1 id="h1Header" class="font-medium text-lg">Welcome back!</h1>
-        <div id="categories" class="my-4"></div>
+        <div id="categories" class="my-6"></div>
         <div class="">
-            <div id="mealList" class="flex flex-wrap gap-8 items-center justify-between"></div>
+            <div id="mealList" class="flex flex-wrap gap-8 items-center"></div>
             <span id="mealsNotFound" class="hidden">Sorry, we couldn't find any items that match your selection.</span>
         </div>
     </div>
@@ -38,12 +43,16 @@
             <button id="closeCartBtn" class="cursor-pointer rounded-full border-1 w-8 h-8"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div id="cartList" class=""></div>
-        <span id="cartEmpty" class="italic">Your cart is empty. Add something delicious!</span>
+        <div id="cartEmpty" class="text-lg text-center my-4">Your cart is empty.<br/><div class="text-9xl mt-2">🍽️</div><br/>Add something delicious!</div>
+        <div id="orderComplete" class="hidden text-lg text-center my-4">Your order is on its way!<br/><div class="text-9xl myt-2">🚚</div><br/>Thanks for shopping with us!</div>
         <div class="mt-4 pt-2 flex justify-between">
             <span class="font-medium">Total</span>
             <span id="cartTotal" class="">$0.00</span>
         </div>
-        <button id="checkoutBtn" class="mt-4 cursor-pointer w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full">Checkout</button>
+        <button id="checkoutBtn" onclick="checkout()"
+            class="mt-4 cursor-pointer w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full">Checkout</button>
+        <button id="continueShoppingBtn"  onclick="closeCart()"
+            class="hidden mt-4 cursor-pointer w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full">Continue shopping</button>
     </div>
     <script src="js/dashboard.js"></script>
 </body>
