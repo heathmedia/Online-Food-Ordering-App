@@ -1,30 +1,55 @@
-/*
-    Notes
+// Initialize constants
+const mealUrl = 'https://www.themealdb.com/api/json/v1/1/search.php?s='
+const mealFilterUrl = 'https://www.themealdb.com/api/json/v1/1/filter.php?c='
+const email = localStorage.getItem('email')
 
-    Use localStorage key/value pairs to store data across the session (insecure for sensistive data)
+const categories = [
+    {id:'All', icon:''},
+    {id:'Chicken', icon:'🍗'},
+    {id:'Seafood', icon:'🦐'},
+    {id:'Beef', icon:'🥩'},
+    {id:'Pork', icon:'🥓'},
+    {id:'Vegan', icon:'🥗'},
+    {id:'Vegetarian', icon:'🥦'},
+    {id:'Goat', icon:'🐐'},
+    {id:'Lamb', icon:'🐑'},
+    {id:'Pasta', icon:'🍝'},
+    {id:'Dessert', icon:'🍰'},
+    {id:'Breakfast', icon:'🍳'}
+]
 
-    cart.find(c=>c.mealId === mealId)
-    - find if an item added to the cart already exists in the cart
+// Check if user is logged in and direct to Login page if not
+if (localStorage.getItem('isLoggedIn') !== 'true') {
+    logout()
+}
 
-    cart.push({mealId, mealName, price, quantity: 1})
-    - add a new item to the cart
+// Initialize event listeners for showing/hiding Cart
+document.getElementById('cartBtn').addEventListener('click', openCart)
+document.getElementById('closeCartBtn').addEventListener('click', closeCart)
+overlay.addEventListener('click', closeCart)
 
-    
-    API URLs
-    - Meals: https://www.themealdb.com/api/json/v1/1/search.php?s=c
-    - List by Ingredient: https://www.themealdb.com/api/json/v1/1/list.php?c=list
-    - Filter by ingredient: https://www.themealdb.com/api/json/v1/1/filter.php?i=chicken_breast
-    - Filter by category: https://www.themealdb.com/api/json/v1/1/filter.php?c=Seafood
+// Add email to Welcome message
+if (email) {
+    document.getElementById('h1Header').textContent = `Welcome back, ${email}!`
+}
 
+// Re-populate the Cart if items are available from prior session.
+// If cart is null, disable Checkout button.
+if(localStorage.getItem('cart')) {
+    const cart = JSON.parse(localStorage.getItem('cart'))
+    populateCartDisplay(cart)
+} else {
+    setButtonState(document.getElementById('checkoutBtn'), false)
+}
 
-    Define a formula for creating prices using mealId so prices remain the same across sessions
+// Get available meals from Meal API & setup meal filtering categories
+getMeals()
+setupCategories()
 
-*/
 function logout() {
     localStorage.removeItem('isLoggedIn')
     localStorage.removeItem('email')
-    localStorage.removeItem('cart')
-    window.location.href = '/login.html'
+    window.location.href = 'login.html'
 }
 
 function addMealToDisplay(item) {
@@ -45,10 +70,11 @@ function addMealToDisplay(item) {
     title.textContent = item.strMeal
     title.className = 'text-lg font-medium truncate w-full'
 
-    // MODIFY THE MEAL ID TO CREATE A PRICE FOR THE MEAL
+    // Modify the meal ID to create a price for the meal that can be reliably reproduced
+    // Maintain the price as an integer value (in pennies) to prevent floating point errors.
     let priceValue = Number(item.idMeal) - 50000
     let price = document.createElement('div')
-    price.textContent = `$${(priceValue/100).toFixed(2)}` // DISPLAY PRICE WITH TWO DIGITS
+    price.textContent = `$${(priceValue/100).toFixed(2)}` // Display interger price in two-digit decimal format.
 
     info.append(title, price)
     
@@ -68,7 +94,7 @@ function addMealToDisplay(item) {
 function addToCart(item) {
     const cart = getCart()
 
-    // Check if the item already exists in the cart
+    // Check if the item already exists in the cart.
     const cartItem = cart.find(i => i.id === item.id)
     if (cartItem) {
         cartItem.quantity += 1
@@ -81,7 +107,6 @@ function addToCart(item) {
 }
 
 function removeFromCart(item) {
-    console.log('remove', item)
     let cart = getCart()
     const cartItem = cart.find(i => i.id === item.id)
 
@@ -96,7 +121,7 @@ function removeFromCart(item) {
     populateCartDisplay(cart)
 }
 
-// SET ENABLED/DISABLED STATE FOR A BUTTON
+// Set a button as enabled or disabled.
 function setButtonState(btn, enabled) {
     btn.disabled = !enabled
     btn.classList.toggle('opacity-50', !enabled)
@@ -108,7 +133,7 @@ function populateCartDisplay(cart) {
     
     const cartList = document.getElementById('cartList')
 
-    // UPDATE TOTALS FOR CART QUANTITY AND CART COST
+    // Update totals for cart quanity and cart cost.
     const totals = cart.reduce((acc, i) => {
             acc.quantity += i.quantity
             acc.cost += i.quantity * i.price
@@ -116,15 +141,15 @@ function populateCartDisplay(cart) {
         }, {quantity: 0, cost: 0}
     )
 
-    // SHOW TOTAL NUMBER OF ITEMS IN THE HEADER AND CART PANEL
+    // Show total number of items in cart in the Header and Cart panel.
     document.getElementById('itemCountInHeader').textContent = `${totals.quantity}`
     document.getElementById('itemCountInCart').textContent = `(${totals.quantity})`
     
-    // CONVERT THE CART TOTAL FROM INTEGER TO TWO-DIGIT DECIMAL FOR DISPLAY
+    // Convert the the cart cost total from integer to two-digit decimal for display.
     document.getElementById('cartTotal').textContent = `$${(totals.cost/100).toFixed(2)}`
     
-    // IF CART IS EMPTY, DISPLAY EMPTY CART MESSAGE AND DISABLE CHECKOUT BUTTOn
-    // ELSE DISPLAY CART ITEMS AND ENABLE CHECKOUT BUTTON
+    // If Cart is empty, display Empty Cart message and disable Checkout button.
+    // Else, display cart items and enable Checkout button.
     if (totals.quantity === 0) {
         document.getElementById('cartEmpty').classList.remove('hidden')
         setButtonState(document.getElementById('checkoutBtn'), false)
@@ -134,7 +159,7 @@ function populateCartDisplay(cart) {
         setButtonState(document.getElementById('checkoutBtn'), true)
     }
 
-    // POPULATE CART LIST WITH ITEMS IN CART
+    // Populate Cart list with items in cart.
     cartList.innerHTML = ''
     cart.forEach(item => {
         const itemDisplay = document.createElement('div')
@@ -181,12 +206,14 @@ function getCart() {
     return cart
 }
 
+// Open the right side Cart panel.
 function openCart() {
     cartPanel.classList.remove('translate-x-full')
     overlay.classList.remove('opacity-0', 'pointer-events-none')
     overlay.classList.add('opacity-100')
 }
 
+// Close the right side Cart panel.
 function closeCart() {
     cartPanel.classList.add('translate-x-full')
     overlay.classList.add('opacity-0', 'pointer-events-none')
@@ -222,7 +249,6 @@ function getMeals() {
     fetch(mealUrl)
             .then(res=>res.json())
             .then(data=>{
-                console.log('MEALS API', data)
                 updateMealDisplay(data.meals)
             })
             .catch(error => {
@@ -230,8 +256,8 @@ function getMeals() {
             })
 }
 
+// Create and render the category filters.
 function setupCategories() {
-
         categories.map(category => {
             const option = document.createElement('button')
             option.innerHTML = category.icon+' '+category.id
@@ -249,7 +275,6 @@ function setupCategories() {
 
 function switchCategory(option) {
     let url = ''
-    console.log('switch', option)
     if (option === 'All') {
         url = mealUrl
     } else {
@@ -258,7 +283,6 @@ function switchCategory(option) {
     fetch(url)
             .then(res=>res.json())
             .then(data=>{
-                console.log(data)
                 updateMealDisplay(data.meals)
                 toggleCategoryDisplay(option)
             })
@@ -267,8 +291,8 @@ function switchCategory(option) {
             })
 }
 
+// Toggle the visual display of selected and non-selected category buttons.
 function toggleCategoryDisplay(option) {
-    console.log('toggle', option)
     categories.map(category => {
         const button = document.getElementById(category.id)
         if (category.id === option) {
@@ -278,48 +302,3 @@ function toggleCategoryDisplay(option) {
         }
     })
 }
-
-// INITIALIZE CONSTANTS
-const mealUrl = 'https://www.themealdb.com/api/json/v1/1/search.php?s='
-const mealFilterUrl = 'https://www.themealdb.com/api/json/v1/1/filter.php?c='
-const email = localStorage.getItem('email')
-
-const categories = [
-    {id:'All', icon:''},
-    {id:'Chicken', icon:'🍗'},
-    {id:'Seafood', icon:'🦐'},
-    {id:'Beef', icon:'🥩'},
-    {id:'Pork', icon:'🥓'},
-    {id:'Vegan', icon:'🥗'},
-    {id:'Vegetarian', icon:'🥦'},
-    {id:'Goat', icon:'🐐'},
-    {id:'Lamb', icon:'🐑'},
-    {id:'Pasta', icon:'🍝'},
-    {id:'Dessert', icon:'🍰'},
-    {id:'Breakfast', icon:'🍳'}
-]
-
-// INITIALIZE EVENT LISTENERS TO SHOW AND HIDE CART
-document.getElementById('cartBtn').addEventListener('click', openCart)
-document.getElementById('closeCartBtn').addEventListener('click', closeCart)
-overlay.addEventListener('click', closeCart)
-
-// CHECK IF USER IS LOGGED IN AND DIRECT TO LOGIN PAGE IF NOT
-if (localStorage.getItem('isLoggedIn') !== 'true') {
-    logout()
-}
-
-// DISPLAY EMAIL IN WELCOME MESSAGE
-if (email) {
-    document.getElementById('h1Header').textContent = `Welcome back, ${email}!`
-}
-
-// REPOPULATE THE CART IF ITEMS ARE AVAILABLE
-if(localStorage.getItem('cart')) {
-    const cart = JSON.parse(localStorage.getItem('cart'))
-    populateCartDisplay(cart)
-}
-
-// GET AVAILABLE MEALS FROM API
-getMeals()
-setupCategories()
